@@ -3,8 +3,14 @@ This is a Linux Docker image for the PaperMC Minecraft server.
 
 PaperMC is an optimized Minecraft server with plugin support (Bukkit, Spigot, Sponge, etc.).
 This image provides a basic PaperMC server. All customizations are left to the user.
+
+This fork of the original project is intended to allow SSH access to the running container and basic ACL.
+
 # Usage
 It is assumed that the user has already acquired a working Docker installation. If that is not the case, go do that and come back here when you're done.
+
+Also, this container needs internal root access to function properly. This behavior is not allowed on some systems even when deploying to Kubernetes.
+
 ## Command
 With this image, you can create a new PaperMC Minecraft server with one command (note that running said command indicates agreement to the Minecraft EULA). Here is an example:
 
@@ -74,6 +80,25 @@ Environment variables are options that are specified in the format `-e <NAME>="<
   - Set to any additional Java command line options that you would like to include.
   - By default, this environment variable is set to the empty string.
   - `-e JAVA_OPTS="<-XX:+UseConcMarkSweepGC -XX:+UseParNewGC>"`
+- User list
+  - **Name:** `USER_LIST`
+  - Set this to create users for SSH with default passwords on startup.
+  - Must be formatted as a comma-separated list of `username:password`.
+  - By default, this environment variable is set to the empty string.
+  - `-e USER_LIST="<username1:password1,username2:password2>"`
+- Access control list
+  - **Name:** `ACL`
+  - Set this to add users permissions to provide some activity.
+  - Must be formatted as a comma-separated list of `username:aclnum`.
+  - Works as binary vector: `1` (0b001) - allow screen console, `2` (0b010) - allow configuration editing, `4` (0b100) - allow plugin uploading, editing and deleting
+  - By default, this environment variable is set to the empty string.
+  - `-e ACL="<username1:3,username2:6>"`
+- Timezone
+  - **Name:** `TIMEZONE`
+  - Set this to set timezone of the running container.
+  - Must be set to one of the values allowed by Alpine's [tzdata](https://wiki.alpinelinux.org/wiki/Setting_the_timezone).
+  - By default, this environment variable is set to `Europe/London`.
+  - `-e TIMEZONE="<Europe/Prague>"`
 ## Further Setup
 From this point, the server should be configured in the same way as any other Minecraft server. The server's files, including `server.properties`, can be found in the volume that was specified earlier. The port that was specified earlier will probably need to be forwarded as well. For details on how to do this and other such configuration, Google it, because it works the same as any other Minecraft server.
 # Technical
@@ -82,5 +107,5 @@ This project *does **NOT** redistribute the Minecraft server files*. Instead, th
 **PLEASE NOTE:** This is an unofficial project. I did not create PaperMC. [This is the official PaperMC website.](https://papermc.io/)
 
 ## Project Pages
-- [GitHub page](https://github.com/Phyremaster/papermc-docker).
-- [Docker Hub page](https://hub.docker.com/r/phyremaster/papermc).
+- [GitHub page](https://github.com/jozef-sabo/papermc-advanced-docker).
+- [Docker Hub page](https://hub.docker.com/repository/docker/jefinko/papermc-advanced).

@@ -1,7 +1,9 @@
 #!/bin/bash
 
+unset USER_LIST  # security
+
 # Enter server directory
-cd papermc
+cd papermc || exit 1
 
 # Set nullstrings back to 'latest'
 : ${MC_VERSION:='latest'}
@@ -45,5 +47,27 @@ then
   JAVA_OPTS="-Xms${MC_RAM} -Xmx${MC_RAM} $JAVA_OPTS"
 fi
 
+if [ -e /papermc/server.properties.new ]; then
+    mv /papermc/server.properties.new /papermc/server.properties
+fi
+
 # Start server
-exec java -server $JAVA_OPTS -jar "$JAR_NAME" nogui
+screen -d -S papermc -m java -server $JAVA_OPTS -jar "$JAR_NAME" nogui
+SCREEN_PID=`ps -ef | grep screen | head -n 1 | sed -e 's/^ *\([^ ]*\).*$/\1/'`
+echo "Server started with PID $SCREEN_PID"
+
+screen -S papermc -X multiuser on
+
+# Add users to screen session
+IFS=',' # Set the delimiter
+for useracl in $ACL; do
+    IFS=':' read -r username acl <<< "$useracl"
+    # defined in dockerfile
+    if (( acl & 1 ))
+    then
+        screen -S papermc -X acladd $username
+        echo "User $username added to session"
+    fi
+done
+
+tail --pid=$SCREEN_PID -f /dev/null
